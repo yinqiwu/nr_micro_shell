@@ -41,8 +41,8 @@ extern "C"
 
     /* Includes ------------------------------------------------------------------*/
 #ifndef NR_MICRO_SHELL_SIMULATOR
-#include <rtconfig.h>
-#include <rtthread.h>
+//#include <rtconfig.h>
+//#include <rtthread.h>
 #endif
 
 
@@ -122,14 +122,14 @@ The end of line.
 #define NR_SHELL_CMD_HISTORY_BUF_LENGTH 253
 
 /* The user's name. */
-#define NR_SHELL_USER_NAME "nr@root:"
+#define NR_SHELL_USER_NAME "root#"
 
 /*
 0: \n
 1: \r
 2: \r\n
 */
-#define NR_SHELL_END_OF_LINE 0
+#define NR_SHELL_END_OF_LINE 1
 
 /* Weather the terminal support all ANSI codes. */
 #define NR_SHLL_FULL_ANSI 1
@@ -141,8 +141,9 @@ The end of line.
 // #define NR_SHELL_USING_EXPORT_CMD
 
 /* If you use RTOS, you may need to do some special processing for printf(). */
-#define shell_printf(fmt, args...) printf(fmt, ##args);
-#define ansi_show_char(x) putchar(x)
+#include "shell_task.h"
+#define shell_printf(fmt, args...) cli_printf(fmt, ##args);
+#define ansi_show_char(x) cli_putchar(x)
 
 #endif
 
