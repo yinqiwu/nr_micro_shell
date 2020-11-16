@@ -44,7 +44,7 @@ void xmodem_init(p_xm_send_func send_func, p_xm_recv_func recv_func)
 
 // This private function receives a x-modem record to the pointer and
 // returns 1 on success and 0 on error
-static int xmodem_get_record(unsigned int blocknum, unsigned char *pbuf, /*TH*/ unsigned int pack_sz /*TH*/)
+static int xmodem_get_record(unsigned char blocknum, unsigned char *pbuf, /*TH*/ unsigned int pack_sz /*TH*/)
 {
     unsigned int chk, j, size;
     int ch;
@@ -69,12 +69,12 @@ static int xmodem_get_record(unsigned int blocknum, unsigned char *pbuf, /*TH*/ 
 
     // Check block number
     if (*pbuf++ != blocknum){
-        //loge("error 1\r\n");
+        loge("blocknum = %d, rev block num = %d\r\n",blocknum,*pbuf);
         goto err;
     }
         
     if (*pbuf++ != (unsigned char)~blocknum){
-        //loge("error 2\r\n");
+        loge("~blocknum = %d, rev block num = %d\r\n", ~blocknum, *pbuf);
         goto err;
     }
        
@@ -92,12 +92,12 @@ static int xmodem_get_record(unsigned int blocknum, unsigned char *pbuf, /*TH*/ 
     }
     chk &= 0xFFFF;
     if (*pbuf++ != ((chk >> 8) & 0xFF)){
-        //loge("error 3\r\n");
+        loge("checksun verfiy failed!\r\n");
         goto err;
     }
         
     if (*pbuf++ != (chk & 0xFF)){
-        //loge("error 4\r\n");
+        loge("checksun verfiy2 failed!\r\n");
         goto err;
     }
         
@@ -126,8 +126,8 @@ int xmodem_receive(char **dest)
 {
     int starting = 1, ch;
     unsigned char buf[1024 + 4];
-    unsigned int packnum = 1;
-    int retries = XMODEM_RETRY_LIMIT;
+    unsigned char packnum = 1;
+    unsigned int retries = XMODEM_RETRY_LIMIT;
     unsigned int limit = XMODEM_INITIAL_BUFFER_SIZE, size = 0;
     void * p;
     unsigned int pack_sz; // TH
@@ -179,6 +179,7 @@ int xmodem_receive(char **dest)
             if ((p = nr_realloc(*dest, limit,old_size)) == NULL)
             {
                 xmodem_out_func(XM_CAN);
+                logw("memory alloc failed\r\n");
                 return XMODEM_ERROR_OUTOFMEM;
             }
             *dest = (char *)p;
@@ -207,25 +208,25 @@ void shell_xmodem_cmd(char argc, char *argv)
         shell_printf("Unable to allocate memory\n");
         return;
     }
-    shell_printf("Waiting for file ... \r\n");
+    shell_printf("Waiting for file ... ");
     if ((actsize = xmodem_receive(&shell_prog)) < 0)
     {
         if (actsize == XMODEM_ERROR_OUTOFMEM)
         {
-            shell_printf("file too big\n");
+            shell_printf("file too big\r\n");
         }
         else{
             shell_printf("XMODEM error,actsize = %d\r\n", actsize);
         }
         goto exit;
     }
-    logi("xmodem receive exit!\r\n");
+    shell_printf("xmodem receive success,waiting for write data to flash...\r\n");
     // Eliminate the XMODEM padding bytes
     p = shell_prog + actsize - 1;
     while (*p == '\x1A')
         p--;
     p++;
-    shell_printf("done, got %u bytes\n", (unsigned int )(p - shell_prog));
+    shell_printf("\r\ndone, got %u bytes\r\n", (unsigned int )(p - shell_prog));
 
 exit:
     logi("free memory\r\n");
