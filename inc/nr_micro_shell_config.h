@@ -101,7 +101,7 @@ The end of line.
 
 #ifndef PKG_USING_NR_MICRO_SHELL
 /* ANSI command line buffer size. */
-#define NR_ANSI_LINE_SIZE 100
+#define NR_ANSI_LINE_SIZE 256
 
 /* Maximum user name length. */
 #define NR_SHELL_USER_NAME_MAX_LENGTH 30
