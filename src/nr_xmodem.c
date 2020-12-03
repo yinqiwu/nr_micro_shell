@@ -22,7 +22,7 @@
 #include "system_api.h"
 #include "nr_xmodem.h"
 #include "nr_micro_shell.h"
-
+#include "nr_base_cmd.h"
 
 static p_xm_send_func xmodem_out_func;
 static p_xm_recv_func xmodem_in_func;
@@ -203,6 +203,13 @@ void shell_xmodem_cmd(char argc, char *argv)
     char *p;
     int actsize;
     char * shell_prog = 0;
+    if(argc != 2){
+        shell_printf("lost addr info ,usage : xmodem /xxx\n");
+        return;
+    }
+    char file_path[128];
+    memset(file_path, 0, sizeof(file_path));
+    snprintf(file_path, sizeof(file_path), "%s", &(argv[(int)argv[1]]));    
     if ((shell_prog = malloc(XMODEM_INITIAL_BUFFER_SIZE)) == NULL)
     {
         shell_printf("Unable to allocate memory\n");
@@ -228,7 +235,19 @@ void shell_xmodem_cmd(char argc, char *argv)
     p++;
     shell_printf("\r\ndone, got %u bytes\r\n", (unsigned int )(p - shell_prog));
 
-exit:
+    size_t file_sz = p - shell_prog;
+    int fd = open(file_path, O_RDWR | O_CREAT);
+    if(fd < 0){
+        shell_printf("%s create failed!\r\n", file_path);
+        goto exit;
+    }
+    if (write(fd, shell_prog, file_sz) != file_sz){
+        shell_printf("unable to save file %s (no space left on target?)\r\n", file_path);
+        close(fd);
+        goto exit;
+    }
+    close(fd);
+    exit:
     logi("free memory\r\n");
     free(shell_prog);
 }
