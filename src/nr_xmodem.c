@@ -64,7 +64,6 @@ static int xmodem_get_record(unsigned char blocknum, unsigned char *pbuf, /*TH*/
                 goto err;
         }
         pbuf[j] = (unsigned char)ch;
-        //logi("pbuf[%d] = %d\r\n", j, pbuf[j]);
     }
 
     // Check block number
@@ -152,10 +151,8 @@ int xmodem_receive(char **dest)
         }
         case XM_SOH:
             pack_sz = 128;
-            logi("pack_sz = 128\r\n");
             break;
         case XM_STX:
-            logi("pack_sz = 1024\r\n");
             pack_sz = 1024;
             break;
         default: // TH: Should never happen
